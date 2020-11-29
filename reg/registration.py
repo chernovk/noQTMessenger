@@ -20,8 +20,10 @@ class AddUser:
             with con:
                 cursor = con.cursor()
                 try:
-                    cursor.execute(f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`) \
-                                   VALUES ('{self.login}', '{self.password}', '{self.name}');")
+                    cursor.execute(
+                        f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`) \
+                                   VALUES ('{self.login}', '{self.password}', '{self.name}');"
+                    )
                     con.commit()
                     print("Пользователь успешно добавлен!")
                     return True

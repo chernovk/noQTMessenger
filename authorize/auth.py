@@ -18,19 +18,25 @@ class GetToken:
         con = connections.connection()
         with con:
             cursor = con.cursor()
-            cursor.execute(f"SELECT `login`, `password`, `user_id` FROM `messenger`.`users` \
-                           WHERE `login` = '{self.login}';")
+            cursor.execute(
+                f"SELECT `login`, `password`, `user_id` FROM `messenger`.`users` \
+                           WHERE `login` = '{self.login}';"
+            )
             result = cursor.fetchall()
             if result and result[0][1] == self.password:
                 while True:
                     token = random.randint(1000000, 9999999)
                     try:
-                        cursor.execute(f"INSERT INTO `messenger`.`tokens` (`user_id`, `token_number`) VALUES ('{result[0][2]}', '{token}');")
+                        cursor.execute(
+                            f"INSERT INTO `messenger`.`tokens` (`user_id`, `token_number`) VALUES ('{result[0][2]}', '{token}');"
+                        )
                         con.commit()
                         return token
                     except:
-                        cursor.execute(f"UPDATE `messenger`.`tokens` SET `token_number` = '{token}' \
-                                WHERE (`user_id` = '{result[0][2]}');")
+                        cursor.execute(
+                            f"UPDATE `messenger`.`tokens` SET `token_number` = '{token}' \
+                                WHERE (`user_id` = '{result[0][2]}');"
+                        )
                         con.commit()
                         return token
                     finally:

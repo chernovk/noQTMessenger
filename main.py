@@ -5,7 +5,7 @@ from authorize.auth import GetToken
 app = Flask(__name__)
 
 
-@app.route('/add_user/', methods=['GET'])
+@app.route("/add_user/", methods=["GET"])
 def add_user():
     """
     Функция добавления нового пользователя. Принимает GET запрос в виде url с
@@ -23,7 +23,7 @@ def add_user():
         return make_response("Ошибка добавления!", 400)
 
 
-@app.route('/get_token/', methods=['GET'])
+@app.route("/get_token/", methods=["GET"])
 def get_token():
     """
     Функция получает GET запрос с атрибутами login и password от пользовательского
@@ -42,5 +42,5 @@ def get_token():
         return make_response("Ошибка авторизации!", 403)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run("127.0.0.1", port=8888)
