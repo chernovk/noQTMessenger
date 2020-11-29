@@ -2,10 +2,11 @@ from DB_connections import connections
 
 
 class AddUser:
-    def __init__(self, login: str, password: str, name: str):
+    def __init__(self, login: str, password: str, name: str, email=None):
         self.login = login
         self.password = password
         self.name = name
+        self.email = email
 
     def create_user(self):
         """
@@ -21,8 +22,8 @@ class AddUser:
                 cursor = con.cursor()
                 try:
                     cursor.execute(
-                        f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`) \
-                                   VALUES ('{self.login}', '{self.password}', '{self.name}');"
+                        f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`, `email`) \
+                                   VALUES ('{self.login}', '{self.password}', '{self.name}, {self.email}');"
                     )
                     con.commit()
                     print("Пользователь успешно добавлен!")
