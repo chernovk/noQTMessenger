@@ -23,7 +23,7 @@ class AddUser:
                 try:
                     cursor.execute(
                         f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`, `email`) \
-                                   VALUES ('{self.login}', '{self.password}', '{self.name}, {self.email}');"
+                                   VALUES ('{self.login}', '{self.password}', '{self.name}', '{self.email}');"
                     )
                     con.commit()
                     print("Пользователь успешно добавлен!")

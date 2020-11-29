@@ -16,7 +16,8 @@ def add_user():
     login = request.args.get("login")
     password = request.args.get("password")
     name = request.args.get("name")
-    user = AddUser(login, password, name)
+    email = request.args.get("email")
+    user = AddUser(login, password, name, email)
     if user.create_user():
         return make_response("Пользователь добавлен в базу!", 200)
     else:
