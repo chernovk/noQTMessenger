@@ -1,5 +1,3 @@
-
-
 def registration(login: str, password: str, name: str, email: str):
     """
     API Сервиса Регистрации, предоставляющая возможность регистрации пользователя, занесение
