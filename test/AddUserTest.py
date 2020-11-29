@@ -14,6 +14,5 @@ class TestAddUser(unittest.TestCase):
         self.assertEqual(result, True)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
