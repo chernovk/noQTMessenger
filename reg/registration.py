@@ -37,5 +37,5 @@ class AddUser:
         Метод проверяет валидность введенных данных по длине
         :return: True, если валидность подтверждена
         """
-        if len(self.login) <= 20 and len(self.password) <= 20 and len(self.name) <= 20:
+        if 0 < len(self.login) <= 20 and 0 < len(self.password) <= 20 and 0 < len(self.name) <= 20:
             return True
