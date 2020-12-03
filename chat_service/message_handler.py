@@ -46,14 +46,15 @@ class ReceiveMessage(Resource):
                 queue = channel.queue_declare(queue=my_login)
 
                 method, properties, body = channel.basic_get(my_login)
-
+                print(body)
                 if method:
-                    while queue.method.message_count > 0:
-                        body = json.loads(body)
+                    count = queue.method.message_count
+                    while count > 0:
+                        data = json.loads(body)
 
-                        login_sender = body['sender']
-                        message = body['message']
-                        datetime = body['date']
+                        login_sender = data['sender']
+                        message = data['message']
+                        datetime = data['date']
 
                         if login_sender in to_receive:
                             to_receive[login_sender].update({datetime: message})
@@ -74,11 +75,9 @@ class ReceiveMessage(Resource):
                             cur.execute("INSERT INTO Messages(sender_id, receiver_id, date, message) "
                                         "VALUES(?, ?, ?, ?)", [sender_id, receiver_id, datetime, message])
                             con.commit()
+                        count -= 1
 
-                    to_receive = json.dumps(to_receive)
-
-                    res = make_response(to_receive)
-                    return res
+                    return jsonify(to_receive)
                 return make_response('No content', 204)
 
             else:
