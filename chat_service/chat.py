@@ -68,6 +68,8 @@ class ReceiveMessage(Resource):
     def post(self):
         """
         Выдаем клиенту сообщение по его токену из очеереди сообщений
+        По моей идее, клиент регулярно посылает POST запрос на сервер, запрашивая новые сообщения для него.
+        в этом запросе он передает свой токен (поэтому пост запрос, т.к. токен не должен быть в урле)
 
         :return:
         """
@@ -81,12 +83,15 @@ class ReceiveMessage(Resource):
                            "ON Users.user_id = Tokens.user_id "
                            f"WHERE token={token}"
                            )
+            # По токену клиент устанавливает свой логин, для запроса сообщений из своей очереди, если токен не валидный,
+            # проваливается в ответ 403 и в ссылку на авторизацию
             try:
                 my_login = cursor.fetchall()[0][0]
             except IndexError:
                 return "403 Доступ запрещен", 403
             if my_login:
 
+                # создаем словарик, в который будем помещать имеющиеся в очереди сообщения
                 to_receive = {}
 
                 credentials = pika.PlainCredentials('guest', 'guest')
@@ -97,8 +102,13 @@ class ReceiveMessage(Resource):
                 channel = connection.channel()
 
                 queue = channel.queue_declare(queue=my_login)
+
+                # количество сообщений в очереди
                 count = queue.method.message_count
 
+                # пока сообщения в очереди не кончатся,
+                # (а их должно быть немного, так как запросы от клиента будут поступать регулярно)
+                # вытаскиваем их из очереди, пишем в БД, заносим в наш словарик для клиента
                 while count > 0:
                     method_frame, properties, body = channel.basic_get(my_login)
                     data = json.loads(body)
@@ -130,6 +140,7 @@ class ReceiveMessage(Resource):
                     count -= 1
                 channel.close()
                 connection.close()
+
                 if len(to_receive):
                     return jsonify(to_receive)
                 else:
