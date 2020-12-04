@@ -61,6 +61,7 @@ class SendMessage(Resource):
                     return "Сообщение отправлено", 200
                 else:
                     # урл прописать который будет на сервере
+                    # TODO
                     return "403 Доступ запрещен", 302, {'location': 'https://localhost:5000/login'}
 
 
@@ -88,6 +89,7 @@ class ReceiveMessage(Resource):
             try:
                 my_login = cursor.fetchall()[0][0]
             except IndexError:
+                # TODO
                 return "403 Доступ запрещен", 403
             if my_login:
 
@@ -146,6 +148,7 @@ class ReceiveMessage(Resource):
                 else:
                     make_response("204 No Content", 204)
             else:
+                # TODO
                 return make_response("403 Доступ запрещен", 403)
 
 
