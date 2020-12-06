@@ -4,4 +4,4 @@ venv_*/
 .idea/
 .coverage
 *.pyc
-.env
+DB_connections/.env

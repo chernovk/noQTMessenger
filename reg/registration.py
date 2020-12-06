@@ -3,10 +3,9 @@ import random
 
 
 class AddUser:
-    def __init__(self, login: str, password: str, name: str):
+    def __init__(self, login: str, password: str):
         self.login = login
         self.password = password
-        self.name = name
         self.token = random.randint(1000000, 9999999)
 
     def create_user(self):
@@ -22,8 +21,8 @@ class AddUser:
             cursor = con.cursor()
             try:
                 cursor.execute(
-                    f"INSERT INTO messenger.users (login, password, name, token_number) \
-                    VALUES ('{self.login}', '{self.password}', '{self.name}', '{self.token}');"
+                    f"INSERT INTO messenger.users (login, password, token_number) \
+                    VALUES ('{self.login}', '{self.password}', '{self.token}');"
                 )
                 con.commit()
                 print("Пользователь успешно добавлен!")
@@ -38,6 +37,5 @@ class AddUser:
         :return: True, если валидность подтверждена
         """
         if 0 < len(self.login) <= 20 and \
-                0 < len(self.password) <= 20 and \
-                0 < len(self.name) <= 20:
+                0 < len(self.password) <= 20:
             return True

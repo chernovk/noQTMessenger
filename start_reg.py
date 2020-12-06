@@ -19,13 +19,11 @@ class StartReg:
             """
             login = request.args.get("login")
             password = request.args.get("password")
-            name = request.args.get("name")
-            email = request.args.get("email")
-            user = AddUser(login, password, name, email)
+            user = AddUser(login, password)
             if user.create_user():
-                return make_response(jsonify(["Пользователь добавлен в базу!", 200]))
+                return make_response(jsonify([str("New user successfully added"), 200]))
             else:
-                return make_response(jsonify(["Ошибка добавления!", 400]))
+                return make_response(jsonify([str("Error!"), 400]))
 
         app.run(f"{self.adress}", port=self.port)
 
