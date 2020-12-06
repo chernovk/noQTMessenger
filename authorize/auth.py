@@ -19,26 +19,28 @@ class GetToken:
         with con:
             cursor = con.cursor()
             cursor.execute(
-                f"SELECT `login`, `password`, `user_id` FROM `messenger`.`users` \
-                           WHERE `login` = '{self.login}';"
+                f"SELECT login, password, user_id FROM messenger.users \
+                           WHERE login = '{self.login}';"
             )
             result = cursor.fetchall()
             if result and result[0][1] == self.password:
-                while True:
+                tryings = 0
+                while tryings < 5:
                     token = random.randint(1000000, 9999999)
                     try:
                         cursor.execute(
-                            f"INSERT INTO `messenger`.`tokens` (`user_id`, `token_number`) VALUES ('{result[0][2]}', '{token}');"
+                            f"INSERT INTO messenger.users (user_id, `token_number`) "
+                            f"VALUES ('{result[0][2]}', '{token}');"
                         )
                         con.commit()
                         return token
                     except:
                         cursor.execute(
-                            f"UPDATE `messenger`.`tokens` SET `token_number` = '{token}' \
-                                WHERE (`user_id` = '{result[0][2]}');"
+                            f"UPDATE messenger.users SET token_number = '{token}' "
+                            f"WHERE (user_id = '{result[0][2]}');"
                         )
                         con.commit()
                         return token
                     finally:
-                        pass
+                        tryings += 1
             return False
