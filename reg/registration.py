@@ -1,12 +1,13 @@
 from DB_connections import connections
+import random
 
 
 class AddUser:
-    def __init__(self, login: str, password: str, name: str, email=None):
+    def __init__(self, login: str, password: str, name: str):
         self.login = login
         self.password = password
         self.name = name
-        self.email = email
+        self.token = random.randint(1000000, 9999999)
 
     def create_user(self):
         """
@@ -18,18 +19,17 @@ class AddUser:
         """
         con = connections.connection()
         if self.verify_data():
-            with con:
-                cursor = con.cursor()
-                try:
-                    cursor.execute(
-                        f"INSERT INTO `messenger`.`users` (`login`, `password`, `name`, `email`) \
-                                   VALUES ('{self.login}', '{self.password}', '{self.name}', '{self.email}');"
-                    )
-                    con.commit()
-                    print("Пользователь успешно добавлен!")
-                    return True
-                except:
-                    print("Не удалось зарегестрировать нового пользователя!")
+            cursor = con.cursor()
+            try:
+                cursor.execute(
+                    f"INSERT INTO messenger.users (login, password, name, token_number) \
+                    VALUES ('{self.login}', '{self.password}', '{self.name}', '{self.token}');"
+                )
+                con.commit()
+                print("Пользователь успешно добавлен!")
+                return True
+            except Exception:
+                print("Не удалось зарегестрировать нового пользователя!")
         return False
 
     def verify_data(self):
@@ -37,5 +37,7 @@ class AddUser:
         Метод проверяет валидность введенных данных по длине
         :return: True, если валидность подтверждена
         """
-        if 0 < len(self.login) <= 20 and 0 < len(self.password) <= 20 and 0 < len(self.name) <= 20:
+        if 0 < len(self.login) <= 20 and \
+                0 < len(self.password) <= 20 and \
+                0 < len(self.name) <= 20:
             return True
