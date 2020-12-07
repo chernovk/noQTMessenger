@@ -12,38 +12,36 @@ class Verification:
         self.token = token
         self.receiver = receiver
 
-    def __verify_data__(self):
+    def verify_data(self):
         con = connections.connection()
-        if not self.message:
-            return False
-
-        try:
-            cursor = con.cursor()
-            cursor.execute(f"SELECT login, token_number "
-                           f"FROM users "
-                           f"WHERE token_number = '{self.token}';")
-            result = cursor.fetchall()
-            if not str(result[0][1]) == self.token:
-                return False
-        except Exception:
-            return False
-
-        try:
-            cursor = con.cursor()
-            cursor.execute(f"SELECT login "
-                           f"FROM users "
-                           f"WHERE login = '{self.receiver}';")
-            result = cursor.fetchall()
-            if not result[0][0]:
-                return False
-        except:
-            return False
-        return True
+        if self.message:
+            with con:
+                try:
+                    cursor = con.cursor()
+                    cursor.execute(f"SELECT login "
+                                   f"FROM users "
+                                   f"WHERE token_number=?;", self.token)
+                    sender_login = cursor.fetchall()[0][0]
+                    if not sender_login:
+                        return 'authorization error'
+                except IndexError:
+                    return False
+                try:
+                    cursor = con.cursor()
+                    cursor.execute(f"SELECT login "
+                                   f"FROM users "
+                                   f"WHERE login=?;", self.receiver)
+                    result = cursor.fetchall()[0][0]
+                    if not result:
+                        return 'receiver error'
+                except IndexError:
+                    return False
+            return sender_login
 
 
 class StartChat:
-    def __init__(self, adress, port):
-        self.adress = adress
+    def __init__(self, address, port):
+        self.address = address
         self.port = port
         app = Flask(__name__)
 
@@ -62,69 +60,53 @@ class StartChat:
             time = request.form["time"]
 
             verify_message = Verification(message, token, receiver)
-            if verify_message.__verify_data__():
-
+            if verify_message.verify_data() == 'authorization error':
+                return make_response("403 Доступ запрещен", 403, 'ссылка на сервис авторизации')
+            elif verify_message.verify_data() == 'receiver error':
+                return make_response("404 Ошибка в адресе получателя", 404)
+            elif verify_message.verify_data():
+                # Если проверка на наличие сообщения, на правильность логина получателя
+                # и на валидность токена отправителя проходит, валидатор возвращает
+                # установленный по токену логин отправителя, который идет в package
+                sender_login = verify_message.verify_data()
                 credentials = pika.PlainCredentials('guest', 'guest')
                 connection = pika.BlockingConnection(pika.ConnectionParameters(config.rabbit_adress,
                                                                                config.rabbit_port,
                                                                                '/',
                                                                                credentials))
                 channel = connection.channel()
-                con = connections.connection()
-                cursor = con.cursor()
-                cursor.execute(f"SELECT login, user_id "
-                               f"FROM messenger.users "
-                               f"WHERE token_number = '{token}';")
-                result = cursor.fetchall()
-                login = result[0][0]
-                sender_id = result[0][1]
-                cursor.execute(f"SELECT user_id "
-                               f"FROM messenger.users "
-                               f"WHERE login = '{receiver}';")
-                receiver_id = cursor.fetchall()[0][0]
-                try:
-                    cursor.execute(
-                        f"INSERT INTO messenger.messages (sender_id, receiver_id, message, send_time, received)"
-                        f" VALUES ('{sender_id}', '{receiver_id}', '{message}', '{time}', '{False}');"
-                    )
-                    con.commit()
-                    print("Сообщение успешно добавлено в базу!")
-                except Exception:
-                    print("Не удалось записать сообщение в базу!")
 
-                channel.queue_declare(queue=login)
+                channel.queue_declare(queue=receiver)
                 package = json.dumps({
-                    'sender': login,
+                    'sender': sender_login,
                     'date': time,
                     'message': message
                 })
-                channel.basic_publish(exchange='', routing_key=login, body=package)
+                channel.basic_publish(exchange='', routing_key=receiver, body=package)
                 connection.close()
                 return make_response(jsonify([str("Successfully send!"), 200]))
-            else:
-                return make_response(jsonify([str("Wrong request!"), 400]))
 
-        @app.route("/give_message/", methods=["GET"])
-        def give_message():
+        @app.route("/get_messages/", methods=["POST"])
+        def get_messages():
             """
             Выдаем клиенту сообщение по его токену из очереди сообщений
             По моей идее, клиент регулярно посылает POST запрос на сервер, запрашивая новые сообщения для него.
             в этом запросе он передает свой токен (поэтому пост запрос, т.к. токен не должен быть в урле)
             :return:
             """
-            token = request.args.get('token')
+            token = request.form["token"]
             con = connections.connection()
-            cursor = con.cursor()
-            cursor.execute("SELECT login "
-                           "FROM users "
-                           f"WHERE token={token}"
-                           )
-            # По токену клиент устанавливает свой логин, для запроса сообщений из своей очереди, если токен не валидный,
-            # проваливается в ответ 403 и в ссылку на авторизацию
-            try:
-                my_login = cursor.fetchall()[0][0]
-            except IndexError:
-                return make_response(["403 Доступ запрещен", 403])
+            with con:
+                cursor = con.cursor()
+                cursor.execute("SELECT login "
+                               "FROM users "
+                               f"WHERE token=?", token)
+                # По токену клиент устанавливает свой логин, для запроса сообщений из своей очереди, если токен не
+                # валидный, проваливается в ответ 403 и в ссылку на авторизацию
+                try:
+                    my_login = cursor.fetchall()[0][0]
+                except IndexError:
+                    return make_response(["403 Доступ запрещен", 403])
             if my_login:
                 # создаем словарик, в который будем помещать имеющиеся в очереди сообщения
                 to_receive = {}
@@ -158,21 +140,19 @@ class StartChat:
                         to_receive.update({login_sender: {datetime: message}})
 
                     con = connections.connection()
-                    cur = con.cursor()
-                    cur.execute(f"SELECT user_id "
-                                "FROM Users "
-                                f"WHERE login='{login_sender}';")
-                    sender_id = cur.fetchall()[0][0]
-                    cur.execute("SELECT user_id "
-                                "FROM Users "
-                                f"WHERE login='{my_login}';")
-                    receiver_id = cur.fetchall()[0][0]
-                    cur.execute(f"UPDATE messages SET received ='{True}' "
-                                f"WHERE message = '{message}', "
-                                f"sender_id = '{sender_id}', "
-                                f"receiver_id ='{receiver_id}' "
-                                f"send_time = '{datetime}';")
-                    con.commit()
+                    with con:
+                        cur = con.cursor()
+                        cur.execute(f"SELECT user_id "
+                                    "FROM Users "
+                                    f"WHERE login=?;", login_sender)
+                        sender_id = cur.fetchall()[0][0]
+                        cur.execute("SELECT user_id "
+                                    "FROM Users "
+                                    f"WHERE login=?;", my_login)
+                        receiver_id = cur.fetchall()[0][0]
+                        cur.execute("INSERT INTO messages(message, sender_id, receiver_id, send_time) "
+                                    f"VALUES(?, ?, ?, ?)", (message, sender_id, receiver_id, datetime))
+                        con.commit()
                     channel.basic_ack(method_frame.delivery_tag)
                     count -= 1
                 channel.close()
@@ -185,7 +165,7 @@ class StartChat:
             else:
                 return make_response(jsonify(["403 Доступ запрещен", 403]))
 
-        app.run(f"{self.adress}", port=self.port)
+        app.run(f"{self.address}", port=self.port)
 
 
 StartChat(config.chat_adress, config.chat_port)
