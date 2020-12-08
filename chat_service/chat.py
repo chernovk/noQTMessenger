@@ -20,22 +20,23 @@ class Verification:
                     cursor = con.cursor()
                     cursor.execute(f"SELECT login "
                                    f"FROM users "
-                                   f"WHERE token_number=?;", self.token)
-                    sender_login = cursor.fetchall()[0][0]
-                    if not sender_login:
-                        return 'authorization error'
-                except IndexError:
-                    return False
-                try:
-                    cursor = con.cursor()
-                    cursor.execute(f"SELECT login "
-                                   f"FROM users "
                                    f"WHERE login=?;", self.receiver)
                     result = cursor.fetchall()[0][0]
                     if not result:
                         return 'receiver error'
                 except IndexError:
-                    return False
+                    return 'receiver error'
+                try:
+                    cursor = con.cursor()
+                    cursor.execute(f"SELECT login "
+                                   f"FROM users "
+                                   f"WHERE token_number=?;", self.token)
+                    sender_login = cursor.fetchall()[0][0]
+                    if not sender_login:
+                        return 'authorization error'
+                except IndexError:
+                    return 'authorization error'
+
             return sender_login
 
 
@@ -46,7 +47,7 @@ class StartChat:
         app = Flask(__name__)
 
         @app.route("/send_message/", methods=["POST"])
-        def receive_message():
+        def send_message():
             """
             Принимаем от клиента сообщение, его токен, логин адресата и дату/время отправки.
             Токен сверяем с БД. Если корректный:
@@ -57,13 +58,13 @@ class StartChat:
             message = request.form['message']
             token = request.form["token"]
             receiver = request.form["receiver"]
-            time = request.form["time"]
+            date = request.form['date']
 
             verify_message = Verification(message, token, receiver)
             if verify_message.verify_data() == 'authorization error':
-                return make_response("403 Доступ запрещен", 403, 'ссылка на сервис авторизации')
+                return make_response("403 Forbidden", 403)
             elif verify_message.verify_data() == 'receiver error':
-                return make_response("404 Ошибка в адресе получателя", 404)
+                return make_response("404 Receiver Not Found", 404)
             elif verify_message.verify_data():
                 # Если проверка на наличие сообщения, на правильность логина получателя
                 # и на валидность токена отправителя проходит, валидатор возвращает
@@ -79,12 +80,12 @@ class StartChat:
                 channel.queue_declare(queue=receiver)
                 package = json.dumps({
                     'sender': sender_login,
-                    'date': time,
+                    'date': date,
                     'message': message
                 })
                 channel.basic_publish(exchange='', routing_key=receiver, body=package)
                 connection.close()
-                return make_response(jsonify([str("Successfully send!"), 200]))
+                return make_response("Successfully sent", 200)
 
         @app.route("/get_messages/", methods=["POST"])
         def get_messages():
@@ -106,7 +107,7 @@ class StartChat:
                 try:
                     my_login = cursor.fetchall()[0][0]
                 except IndexError:
-                    return make_response(["403 Доступ запрещен", 403])
+                    return make_response("403 Forbidden", 403)
             if my_login:
                 # создаем словарик, в который будем помещать имеющиеся в очереди сообщения
                 to_receive = {}
@@ -161,11 +162,11 @@ class StartChat:
                 if len(to_receive):
                     return jsonify(to_receive)
                 else:
-                    make_response(jsonify(["204 No Content", 204]))
+                    make_response("204 No Content", 204)
             else:
-                return make_response(jsonify(["403 Доступ запрещен", 403]))
+                return make_response("403 Authorization error", 403)
 
-        app.run(f"{self.address}", port=self.port)
+        app.run(debug=True)
 
 
 StartChat(config.chat_adress, config.chat_port)
