@@ -102,6 +102,8 @@ class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
             if current_interlocutor_login in current_dialogues:
                 conversation = '\n'.join(current_dialogues[current_interlocutor_login])
                 self.Dialogue.setPlainText(conversation)
+            else:
+                self.Dialogue.setPlainText('')
 
     def send_message(self):
         """

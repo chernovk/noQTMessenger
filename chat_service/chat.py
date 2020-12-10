@@ -101,7 +101,6 @@ class StartChat:
             # data = request.get_json()
             # token = data["token"]
             token = request.form["token"]
-            print(token)
             con = connections.connection()
             with con:
                 cursor = con.cursor()

@@ -85,6 +85,7 @@ class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
                 conversation = '\n'.join(current_dialogues[current_interlocutor_login])
                 self.Dialogue.setPlainText(conversation)
 
+
     def receiver_accepted(self):
         """
         Функция привязана к кнопке "утвердить собеседника". Назначает глобально current_interlocutor_login,
@@ -102,6 +103,8 @@ class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
             if current_interlocutor_login in current_dialogues:
                 conversation = '\n'.join(current_dialogues[current_interlocutor_login])
                 self.Dialogue.setPlainText(conversation)
+            else:
+                self.Dialogue.setPlainText('')
 
     def send_message(self):
         """
