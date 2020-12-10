@@ -5,4 +5,5 @@ venv_*/
 .coverage
 *.pyc
 DB_connections/.env
-venv
+
+/venv/

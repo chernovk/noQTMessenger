@@ -1,7 +1,10 @@
 import json
+import sys, os
+sys.path.append('C:/Users/Admin/Desktop/messenger/noQTMessenger')
 from flask import Flask, request, jsonify, make_response
 import pika
 import config
+
 
 from DB_connections import connections
 
@@ -95,13 +98,16 @@ class StartChat:
             в этом запросе он передает свой токен (поэтому пост запрос, т.к. токен не должен быть в урле)
             :return:
             """
+            # data = request.get_json()
+            # token = data["token"]
             token = request.form["token"]
+            print(token)
             con = connections.connection()
             with con:
                 cursor = con.cursor()
                 cursor.execute("SELECT login "
                                "FROM users "
-                               f"WHERE token=?", token)
+                               f"WHERE token_number=?", token)
                 # По токену клиент устанавливает свой логин, для запроса сообщений из своей очереди, если токен не
                 # валидный, проваливается в ответ 403 и в ссылку на авторизацию
                 try:
@@ -162,7 +168,7 @@ class StartChat:
                 if len(to_receive):
                     return jsonify(to_receive)
                 else:
-                    make_response("204 No Content", 204)
+                    return make_response("204 No Content", 204)
             else:
                 return make_response("403 Authorization error", 403)
 
@@ -170,4 +176,3 @@ class StartChat:
 
 
 StartChat(config.chat_adress, config.chat_port)
-
