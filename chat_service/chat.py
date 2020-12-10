@@ -144,11 +144,11 @@ class StartChat:
                     with con:
                         cur = con.cursor()
                         cur.execute(f"SELECT user_id "
-                                    "FROM Users "
+                                    "FROM users "
                                     f"WHERE login=?;", login_sender)
                         sender_id = cur.fetchall()[0][0]
                         cur.execute("SELECT user_id "
-                                    "FROM Users "
+                                    "FROM users "
                                     f"WHERE login=?;", my_login)
                         receiver_id = cur.fetchall()[0][0]
                         cur.execute("INSERT INTO messages(message, sender_id, receiver_id, send_time) "
