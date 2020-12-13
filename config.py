@@ -6,3 +6,5 @@ chat_address = "127.0.0.1"
 chat_port = 5000
 rabbit_address = "51.103.50.122"
 rabbit_port = 5672
+history_address = "127.0.0.1"
+history_port = 5000

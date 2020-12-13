@@ -98,8 +98,7 @@ class StartChat:
             в этом запросе он передает свой токен (поэтому пост запрос, т.к. токен не должен быть в урле)
             :return:
             """
-            # data = request.get_json()
-            # token = data["token"]
+
             token = request.form["token"]
             con = connections.connection()
             with con:

@@ -4,7 +4,7 @@ import requests
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 import datetime
-from Client import design
+from Client import designTrue
 
 BASE = 'http://127.0.0.1:5000/'
 token = '111'
@@ -48,7 +48,7 @@ class ReceiveMessageThread(QThread):
             QThread.msleep(2000)
 
 
-class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
+class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
     def __init__(self):
 
         super().__init__()
@@ -59,7 +59,7 @@ class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
 
         # привязываем к сигналу потока функию, которая будет на него реагировать внутри gui qt
         self.ReceiveMessage.about_check_messages.connect(self.on_check_messages)
-        self.ReceiveMessage.start()
+        # self.ReceiveMessage.start()
 
     def on_check_messages(self, package):
         """
@@ -140,6 +140,48 @@ class ChatWindow(QtWidgets.QMainWindow, design.Ui_MainWindow):
             except requests.exceptions.ConnectionError:
                 self.Dialogue.setEnabled(False)
                 self.Dialogue.setPlaceholderText("connection lost")
+
+    def get_history(self):
+        """
+        запрос истории сообщений с выбранным пользователем
+        :return:
+        """
+
+        global token, current_interlocutor_login
+        history = []
+        current_interlocutor_login = self.ChoseReceiver.text()
+        if current_interlocutor_login and current_interlocutor_login != '000':
+
+            date1 = self.dateTimeEdit.text()
+            date2 = self.dateTimeEdit_2.text()
+
+            if date1 < date2:
+                try:
+                    response = requests.post(BASE + 'history/', data={'interlocutor_login': current_interlocutor_login,
+                                                                      'token': token, 'date1': date1, 'date2': date2})
+                    if response.status_code == 200:
+                        package = response.json()
+                        for message in package:
+                            if message[0] == current_interlocutor_login:
+                                string_message = f'{message[3]} [{message[0]}]: {message[2]}'
+                            else:
+                                string_message = f'{message[3]} : {message[2]}'
+                            history.append(string_message)
+
+                        history_text = '\n'.join(history)
+                        self.Dialogue.setPlainText(history_text)
+
+                    # статус 404 придет от сервера, если выберем невалидного собеседника
+                    elif response.status_code == 404:
+                        self.Dialogue.setPlainText('The user you are going get history of '
+                                                   'conversation with is not registered')
+                    # статус 403 придет от сервера, если будут проблемы с токеном
+                    elif response.status_code == 403:
+                        self.Dialogue.setPlainText('Authorization Error')
+                except requests.exceptions.ConnectionError:
+                    self.Dialogue.setEnabled(False)
+                    self.Dialogue.setPlaceholderText("connection lost")
+
 
 
 def main():

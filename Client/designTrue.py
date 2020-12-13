@@ -23,6 +23,7 @@ class Ui_MainWindow(object):
         self.SenMessageButton.setAutoDefault(False)
         self.SenMessageButton.setDefault(False)
         self.SenMessageButton.setObjectName("SenMessageButton")
+        self.SenMessageButton.clicked.connect(self.send_message)
         self.gridLayout.addWidget(self.SenMessageButton, 13, 0, 1, 2)
         self.gridWidget = QtWidgets.QWidget(self.centralwidget)
         self.gridWidget.setEnabled(True)
@@ -85,6 +86,7 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.label_2, 1, 0, 1, 1)
         self.pushButton = QtWidgets.QPushButton(self.gridWidget)
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.get_history)
         self.gridLayout_3.addWidget(self.pushButton, 3, 0, 1, 3)
         self.gridLayout.addWidget(self.gridWidget, 3, 1, 1, 1)
         self.ChoseReceiver = QtWidgets.QLineEdit(self.centralwidget)
@@ -98,6 +100,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.YourMessage, 12, 0, 1, 2)
         self.AcceptReceiverButton = QtWidgets.QPushButton(self.centralwidget)
         self.AcceptReceiverButton.setObjectName("AcceptReceiverButton")
+        self.AcceptReceiverButton.clicked.connect(self.receiver_accepted)
         self.gridLayout.addWidget(self.AcceptReceiverButton, 2, 1, 1, 1)
         self.ListReceivers = QtWidgets.QListWidget(self.centralwidget)
         self.ListReceivers.setEnabled(True)
@@ -108,6 +111,7 @@ class Ui_MainWindow(object):
         self.ListReceivers.setSizePolicy(sizePolicy)
         self.ListReceivers.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.ListReceivers.setObjectName("ListReceivers")
+        self.ListReceivers.itemClicked.connect(self.receiver_selected)
         self.gridLayout.addWidget(self.ListReceivers, 6, 1, 1, 1)
         self.label_4 = QtWidgets.QLabel(self.centralwidget)
         self.label_4.setObjectName("label_4")
@@ -130,6 +134,9 @@ class Ui_MainWindow(object):
         pass
 
     def send_message(self):
+        pass
+
+    def get_history(self):
         pass
 
     def retranslateUi(self, MainWindow):
