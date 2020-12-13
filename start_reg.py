@@ -28,4 +28,4 @@ class StartReg:
         app.run(f"{self.adress}", port=self.port)
 
 
-StartReg(config.reg_adress, config.reg_port)
+StartReg(config.reg_address, config.reg_port)

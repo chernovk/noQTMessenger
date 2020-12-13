@@ -1,5 +1,4 @@
 import sys
-import sys, os
 sys.path.append('C:/Users/Admin/Desktop/messenger/noQTMessenger')
 import requests
 from PyQt5 import QtWidgets

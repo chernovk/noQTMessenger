@@ -30,4 +30,4 @@ class StartAuth:
         app.run(f"{self.adress}", port=self.port)
 
 
-StartAuth(config.auth_adress, config.auth_port)
+StartAuth(config.auth_address, config.auth_port)

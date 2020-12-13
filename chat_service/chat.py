@@ -73,8 +73,8 @@ class StartChat:
                 # и на валидность токена отправителя проходит, валидатор возвращает
                 # установленный по токену логин отправителя, который идет в package
                 sender_login = verify_message.verify_data()
-                credentials = pika.PlainCredentials('guest', 'guest')
-                connection = pika.BlockingConnection(pika.ConnectionParameters(config.rabbit_adress,
+                credentials = pika.PlainCredentials('www', 'pass')
+                connection = pika.BlockingConnection(pika.ConnectionParameters(config.rabbit_address,
                                                                                config.rabbit_port,
                                                                                '/',
                                                                                credentials))
@@ -117,8 +117,8 @@ class StartChat:
                 # создаем словарик, в который будем помещать имеющиеся в очереди сообщения
                 to_receive = {}
 
-                credentials = pika.PlainCredentials('guest', 'guest')
-                connection = pika.BlockingConnection(pika.ConnectionParameters(config.rabbit_adress,
+                credentials = pika.PlainCredentials('www', 'pass')
+                connection = pika.BlockingConnection(pika.ConnectionParameters(config.rabbit_address,
                                                                                config.rabbit_port,
                                                                                '/',
                                                                                credentials))
@@ -174,4 +174,4 @@ class StartChat:
         app.run(debug=True)
 
 
-StartChat(config.chat_adress, config.chat_port)
+StartChat(config.chat_address, config.chat_port)
