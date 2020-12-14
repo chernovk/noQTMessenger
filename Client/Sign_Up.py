@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(427, 270)
+        MainWindow.resize(430, 290)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridFrame = QtWidgets.QFrame(self.centralwidget)
@@ -66,8 +66,12 @@ class Ui_MainWindow(object):
 "")
         self.label_3.setObjectName("label_3")
         self.label_8 = QtWidgets.QLabel(self.centralwidget)
-        self.label_8.setGeometry(QtCore.QRect(170, 220, 106, 20))
+        self.label_8.setGeometry(QtCore.QRect(180, 250, 61, 20))
         self.label_8.setObjectName("label_8")
+        self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_4.setGeometry(QtCore.QRect(120, 210, 176, 25))
+        self.pushButton_4.setStyleSheet("font: 11pt \"Ubuntu\";")
+        self.pushButton_4.setObjectName("pushButton_4")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -79,7 +83,6 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "login"))
         self.label_2.setText(_translate("MainWindow", "password"))
         self.label_4.setText(_translate("MainWindow", "password again"))
-        self.pushButton_3.setWhatsThis(_translate("MainWindow", "<html><head/><body><p align=\"center\"><br/></p></body></html>"))
         self.pushButton_3.setText(_translate("MainWindow", "Sign Up"))
         self.label_3.setText(_translate("MainWindow", "Sign Up"))
-        self.label_8.setText(_translate("MainWindow", "congrats"))
+        self.pushButton_4.setText(_translate("MainWindow", "Sign In"))

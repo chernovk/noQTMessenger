@@ -13,7 +13,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(431, 290)
+        MainWindow.resize(430, 290)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridFrame = QtWidgets.QFrame(self.centralwidget)
@@ -73,7 +73,5 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "login"))
         self.label_2.setText(_translate("MainWindow", "password"))
         self.pushButton_2.setText(_translate("MainWindow", "Sign In"))
-        self.pushButton_3.setWhatsThis(_translate("MainWindow", "<html><head/><body><p align=\"center\"><br/></p></body></html>"))
         self.pushButton_3.setText(_translate("MainWindow", "Sign Up"))
         self.label_3.setText(_translate("MainWindow", "Welcome"))
-        self.label_4.setText(_translate("MainWindow", "something went wrong"))

@@ -1,10 +1,15 @@
 import sys
+
+from PyQt5.QtWidgets import QMessageBox
+
 sys.path.append('C:/Users/Admin/Desktop/messenger/noQTMessenger')
 import requests
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 import datetime
 from Client import designTrue
+from Client import Sign_In
+from Client import Sign_Up
 
 BASE = 'http://127.0.0.1:5000/'
 token = '111'
@@ -17,6 +22,56 @@ current_dialogues = {}
 
 # Здесь глобально хранится непосредственно выбранный собеседник
 current_interlocutor_login = '000'
+
+
+class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
+    def __init__(self):
+
+        super().__init__()
+        self.setupUi(self)
+
+        self.pushButton_2.clicked.connect(self.sign_in)
+        self.pushButton_3.clicked.connect(self.sign_up_window)
+
+    def sign_in(self):
+        login = self.lineEdit.text()
+        password = self.lineEdit_2.text()
+
+        if (not login) or (not password):
+            QMessageBox.information(self, 'warning', 'fill in all fields')
+            return
+
+    def sign_up_window(self):
+        self.registrationWindow = RegistrationWindow()
+        self.registrationWindow.show()
+        self.close()
+
+
+class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
+    def __init__(self):
+
+        super().__init__()
+        self.setupUi(self)
+
+        self.pushButton_3.clicked.connect(self.sign_up)
+        self.pushButton_4.clicked.connect(self.sign_in_window)
+
+    def sign_up(self):
+        login = self.lineEdit.text()
+        password = self.lineEdit_2.text()
+        password_again = self.lineEdit_5.text()
+
+        if (not login) or (not password) or (not password_again):
+            QMessageBox.information(self, 'warning', 'fill in all fields')
+            return
+        elif password != password_again:
+            QMessageBox.information(self, 'warning', 'the password repeated incorrectly')
+            return
+
+    def sign_in_window(self):
+        self.authorizationWindow = AuthorizeWindow()
+        self.authorizationWindow.show()
+        self.close()
 
 
 class ReceiveMessageThread(QThread):
@@ -183,10 +238,10 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
                     self.Dialogue.setPlaceholderText("connection lost")
 
 
-
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    window = ChatWindow()
+    # window = ChatWindow()
+    window = AuthorizeWindow()
     window.show()
     app.exec_()
 
