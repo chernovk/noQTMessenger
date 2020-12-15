@@ -1,15 +1,15 @@
 from flask import Flask, request, make_response, jsonify
-from reg.registration import AddUser
+from registration.registration import AddUser
 import config
 
 
 class StartReg:
-    def __init__(self, adress, port):
-        self.adress = adress
+    def __init__(self, address, port):
+        self.address = address
         self.port = port
         app = Flask(__name__)
 
-        @app.route("/add_user/", methods=["GET"])
+        @app.route("/add_user/", methods=["POST"])
         def add_user():
             """
             Функция добавления нового пользователя. Принимает GET запрос в виде url с
@@ -17,15 +17,19 @@ class StartReg:
             AddUser добавить пользователя в базу.
             :return: Код 200 и соответствующее сообщение, если попытка удачна, иначе код 400
             """
-            login = request.args.get("login")
-            password = request.args.get("password")
+            login = request.form["login"]
+            password = request.form["password"]
             user = AddUser(login, password)
-            if user.create_user():
-                return make_response(jsonify(["New user successfully added", 200]))
+            if user.create_user() == 'Successfully registered':
+                return make_response("New user successfully added", 200)
+            elif user.create_user() == 'User with this login already exists':
+                return make_response("User with this login already exists", 409)
             else:
-                return make_response(jsonify(["Error!", 400]))
+                msg = user.create_user()
+                print(msg)
+                return make_response('error', 500)
 
-        app.run(f"{self.adress}", port=self.port)
+        app.run(self.address, self.port, debug=True)
 
 
 StartReg(config.reg_address, config.reg_port)

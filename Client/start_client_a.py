@@ -12,7 +12,7 @@ from Client import Sign_In
 from Client import Sign_Up
 import config
 
-TOKEN = '111'
+TOKEN = '0'
 
 # Здесь глобально хранится список актуальных собеседников
 current_interlocutors = set()
@@ -59,7 +59,6 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
         global TOKEN
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
-        # QMessageBox.information(self, 'warning', f'login = {login}, password = {password}')
         if (not login) or (not password):
             QMessageBox.information(self, 'warning', 'fill in all fields')
 
@@ -73,7 +72,6 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
                 self.chatWindow = ChatWindow()
                 self.chatWindow.show()
                 self.close()
-
 
         elif verify_data(login, password):
             message = verify_data(login, password)
@@ -110,6 +108,7 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
             response = requests.post('http://' + config.reg_address + ":" + str(config.reg_port) + '/add_user/',
                                      data={'login': login,
                                            'password': password})
+
             if response.status_code == 200:
                 QMessageBox.information(self, 'Success', 'Now you can Sign In to start chatting')
                 self.sign_in_window()
@@ -143,9 +142,10 @@ class ReceiveMessageThread(QThread):
         Функция запускает бесконечный цикл в котором раз в 2 секунды посылает запрос на сервер
         :return:
         """
+        global TOKEN
         while True:
             response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/get_messages/',
-                                     data={'token': token})
+                                     data={'token': TOKEN})
 
             try:
                 package = response.json()
@@ -220,7 +220,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
         Функция отправки на сервер сообщения
         :return:
         """
-        global token, current_interlocutor_login
+        global TOKEN, current_interlocutor_login
         if self.YourMessage.text():
             message = self.YourMessage.text()
             recipient_login = current_interlocutor_login
@@ -228,7 +228,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
             try:
                 response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/send_message/',
                                          data={'receiver': recipient_login, 'message': message,
-                                               'token': token, 'date': date_time})
+                                               'token': TOKEN, 'date': date_time})
 
                 # Отправляем сообщение, если успешно отправилось, заносим в кэши, выводим в gui
                 if response.status_code == 200:
@@ -260,7 +260,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
         :return:
         """
 
-        global token, current_interlocutor_login
+        global TOKEN, current_interlocutor_login
         history = []
         current_interlocutor_login = self.ChoseReceiver.text()
         if current_interlocutor_login and current_interlocutor_login != '000':
@@ -272,7 +272,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
                 try:
                     response = requests.post(config.history_address + ":" + str(config.history_port) + '/history/',
                                              data={'interlocutor_login': current_interlocutor_login,
-                                                   'token': token, 'date1': date1, 'date2': date2})
+                                                   'token': TOKEN, 'date1': date1, 'date2': date2})
                     if response.status_code == 200:
                         package = response.json()
                         for message in package:

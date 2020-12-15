@@ -1,15 +1,15 @@
 from flask import Flask, request, make_response, jsonify
-from authorize.auth import GetToken
+from authorisation.authorisation import GetToken
 import config
 
 
 class StartAuth:
-    def __init__(self, adress, port):
-        self.adress = adress
+    def __init__(self, address, port):
+        self.address = address
         self.port = port
         app = Flask(__name__)
 
-        @app.route("/get_token/", methods=["GET"])
+        @app.route("/get_token/", methods=["POST"])
         def get_token():
             """
             Функция получает GET запрос с атрибутами login и password от пользовательского
@@ -18,16 +18,16 @@ class StartAuth:
             :return: token и код 200 при успешном получении токена
                      код 403 и сообщение об ошибке при отказе в получении токена
             """
-            login = request.args.get("login")
-            password = request.args.get("password")
+            login = request.form["login"]
+            password = request.form["password"]
             new_token = GetToken(login, password)
             token = new_token.get_token()
-            if token:
-                return make_response(jsonify([token, 200]))
+            if token is not None:
+                return jsonify({'token': token})
             else:
-                return make_response(jsonify(["Ошибка авторизации!", 403]))
+                return make_response("Authorisation failed", 403)
 
-        app.run(f"{self.adress}", port=self.port)
+        app.run(self.address, self.port, debug=True)
 
 
 StartAuth(config.auth_address, config.auth_port)

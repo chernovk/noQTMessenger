@@ -1,5 +1,5 @@
 import unittest
-from reg.registration import AddUser
+from registration.registration import AddUser
 
 
 class TestAddUser(unittest.TestCase):

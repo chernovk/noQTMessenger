@@ -39,16 +39,14 @@ class AddUser:
             cursor.execute(
                 f"SELECT * "
                 f"FROM users "
-                f"WHERE login={self.login};"
-            )
+                f"WHERE login=?;", self.login)
             result = cursor.fetchall()
             if len(result):
                 return 'User with this login already exists'
             else:
                 cursor.execute(
                     f"INSERT INTO messenger.users (login, password, token_number) \
-                    VALUES ('{self.login}', '{self.password}', '{self.token}');"
-                )
+                    VALUES (?, ?, ?);", self.login, self.password, self.token)
                 con.commit()
                 return 'Successfully registered'
         except Exception as e:

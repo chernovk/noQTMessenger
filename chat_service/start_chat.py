@@ -170,7 +170,7 @@ class StartChat:
             else:
                 return make_response("403 Authorization error", 403)
 
-        app.run(debug=True)
+        app.run(self.address, self.port, debug=True)
 
 
 StartChat(config.chat_address, config.chat_port)
