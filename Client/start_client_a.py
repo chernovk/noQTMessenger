@@ -10,9 +10,9 @@ import datetime
 from Client import designTrue
 from Client import Sign_In
 from Client import Sign_Up
+import config
 
-BASE = 'http://127.0.0.1:5000/'
-token = '111'
+TOKEN = '111'
 
 # Здесь глобально хранится список актуальных собеседников
 current_interlocutors = set()
@@ -22,6 +22,28 @@ current_dialogues = {}
 
 # Здесь глобально хранится непосредственно выбранный собеседник
 current_interlocutor_login = '000'
+
+
+def verify_data(login, password):
+    """
+    Функция проверяет валидность введенных данных
+    :return: True, если валидность подтверждена, False при ошибке
+    """
+    if 0 < len(login) <= 20:
+        for i in login:
+            if not ord('A') <= ord(i) <= ord("z") \
+                    and not ord("0") <= ord(i) <= ord("9"):
+                return 'incorrect symbols in login'
+    else:
+        return 'incorrect length of login'
+    if 0 < len(password) <= 20:
+        for i in password:
+            if not ord('A') <= ord(i) <= ord("z") \
+                    and not ord("0") <= ord(i) <= ord("9"):
+                return 'incorrect symbols in password'
+    else:
+        return 'incorrect length of password'
+    return 'correct form'
 
 
 class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
@@ -34,12 +56,28 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
         self.pushButton_3.clicked.connect(self.sign_up_window)
 
     def sign_in(self):
+        global TOKEN
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
-
+        # QMessageBox.information(self, 'warning', f'login = {login}, password = {password}')
         if (not login) or (not password):
             QMessageBox.information(self, 'warning', 'fill in all fields')
-            return
+
+        elif verify_data(login, password) == 'correct form':
+            response = requests.post('http://' + config.auth_address + ":" + str(config.auth_port) + '/get_token/',
+                                     data={'login': login, 'password': password})
+            if response.status_code == 403:
+                QMessageBox.information(self, 'warning', f'Authorisation failed')
+            elif response.status_code == 200:
+                TOKEN = str(response.json()['token'])
+                self.chatWindow = ChatWindow()
+                self.chatWindow.show()
+                self.close()
+
+
+        elif verify_data(login, password):
+            message = verify_data(login, password)
+            QMessageBox.information(self, 'warning', message)
 
     def sign_up_window(self):
         self.registrationWindow = RegistrationWindow()
@@ -68,6 +106,22 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
             QMessageBox.information(self, 'warning', 'the password repeated incorrectly')
             return
 
+        elif verify_data(login, password) == 'correct form':
+            response = requests.post('http://' + config.reg_address + ":" + str(config.reg_port) + '/add_user/',
+                                     data={'login': login,
+                                           'password': password})
+            if response.status_code == 200:
+                QMessageBox.information(self, 'Success', 'Now you can Sign In to start chatting')
+                self.sign_in_window()
+            elif response.status_code == 409:
+                QMessageBox.information(self, 'warning', "User with this login already exists")
+            else:
+                QMessageBox.information(self, 'warning', f"Error {response.status_code}. Try again")
+
+        elif verify_data(login, password):
+            message = verify_data(login, password)
+            QMessageBox.information(self, 'warning', message)
+
     def sign_in_window(self):
         self.authorizationWindow = AuthorizeWindow()
         self.authorizationWindow.show()
@@ -90,7 +144,9 @@ class ReceiveMessageThread(QThread):
         :return:
         """
         while True:
-            response = requests.post(BASE + 'get_messages/', data={'token': token})
+            response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/get_messages/',
+                                     data={'token': token})
+
             try:
                 package = response.json()
                 if response.status_code == 200 and package:
@@ -170,8 +226,10 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
             recipient_login = current_interlocutor_login
             date_time = datetime.datetime.now()
             try:
-                response = requests.post(BASE + 'send_message/', data={'receiver': recipient_login, 'message': message,
-                                                                       'token': token, 'date': date_time})
+                response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/send_message/',
+                                         data={'receiver': recipient_login, 'message': message,
+                                               'token': token, 'date': date_time})
+
                 # Отправляем сообщение, если успешно отправилось, заносим в кэши, выводим в gui
                 if response.status_code == 200:
                     string_message = f'{str(date_time)[:19]} : {message}'
@@ -212,8 +270,9 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
 
             if date1 < date2:
                 try:
-                    response = requests.post(BASE + 'history/', data={'interlocutor_login': current_interlocutor_login,
-                                                                      'token': token, 'date1': date1, 'date2': date2})
+                    response = requests.post(config.history_address + ":" + str(config.history_port) + '/history/',
+                                             data={'interlocutor_login': current_interlocutor_login,
+                                                   'token': token, 'date1': date1, 'date2': date2})
                     if response.status_code == 200:
                         package = response.json()
                         for message in package:
