@@ -14,16 +14,15 @@ class AddUser:
         :return: True, если удаление прошло успешно, False, если возникла ошибка
         """
         con = connections.connection()
-        if self.verify_data():
-            cursor = con.cursor()
-            try:
-                cursor.execute(
-                    f"DELETE FROM messenger.users WHERE (login = '{self.login}');"
-                )
-                con.commit()
-                return True
-            except Exception as e:
-                print(e)
+        cursor = con.cursor()
+        try:
+            cursor.execute(
+                f"DELETE FROM messenger.users WHERE (login = '{self.login}');"
+            )
+            con.commit()
+            return True
+        except Exception as e:
+            print(e)
         return False
 
     def create_user(self):
@@ -35,36 +34,24 @@ class AddUser:
                  False, если добавление не удалось
         """
         con = connections.connection()
-        if self.verify_data():
-            cursor = con.cursor()
-            try:
+        cursor = con.cursor()
+        try:
+            cursor.execute(
+                f"SELECT * "
+                f"FROM users "
+                f"WHERE login={self.login};"
+            )
+            result = cursor.fetchall()
+            if len(result):
+                return 'User with this login already exists'
+            else:
                 cursor.execute(
                     f"INSERT INTO messenger.users (login, password, token_number) \
                     VALUES ('{self.login}', '{self.password}', '{self.token}');"
                 )
                 con.commit()
-                return True
-            except Exception as e:
-                print(e)
-        return False
+                return 'Successfully registered'
+        except Exception as e:
+            return f'{e}'
 
-    def verify_data(self):
-        """
-        Метод проверяет валидность введенных данных
-        :return: True, если валидность подтверждена, False при ошибке
-        """
-        if 0 < len(self.login) <= 20:
-            for i in self.login:
-                if not ord('A') <= ord(i) <= ord("z") \
-                        and not ord("0") <= ord(i) <= ord("9"):
-                    return False
-        else:
-            return False
-        if 0 < len(self.password) <= 20:
-            for i in self.password:
-                if not ord('A') <= ord(i) <= ord("z") \
-                        and not ord("0") <= ord(i) <= ord("9"):
-                    return False
-        else:
-            return False
-        return True
+
