@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 sys.path.append('C:/Users/Admin/Desktop/messenger/noQTMessenger')
 import requests
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import QThread, pyqtSignal
 import datetime
 from Client import designTrue
@@ -13,6 +13,7 @@ from Client import Sign_Up
 import config
 
 TOKEN = '0'
+LOGIN = '0'
 
 # Здесь глобально хранится список актуальных собеседников
 current_interlocutors = set()
@@ -56,28 +57,44 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
         self.pushButton_3.clicked.connect(self.sign_up_window)
 
     def sign_in(self):
-        global TOKEN
+        """
+        Функция срабатывает при нажатии кнопки Sign In, пропускает пользователя в чат
+        или выводит предупреждение о провале авторизации
+        """
+        global TOKEN, LOGIN
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
+
+        # Проверяем введенные данные на их наличие и с помощью ф-ции verify_data,
+        # которая возвращает строки с информацией об ошибке или о корректности данных
         if (not login) or (not password):
             QMessageBox.information(self, 'warning', 'fill in all fields')
-
         elif verify_data(login, password) == 'correct form':
+
+            # Если все верно, посылаем пост запрос с логином и паролем на сервис авторизации
             response = requests.post('http://' + config.auth_address + ":" + str(config.auth_port) + '/get_token/',
                                      data={'login': login, 'password': password})
             if response.status_code == 403:
                 QMessageBox.information(self, 'warning', f'Authorisation failed')
+
+            # Если ответ 200, извлекаем из него токен и засовываем в глобальную переменную,
+            # фиксируем логин в глобальной переменной тоже, открыаем окно чата
             elif response.status_code == 200:
                 TOKEN = str(response.json()['token'])
+                LOGIN = login
                 self.chatWindow = ChatWindow()
                 self.chatWindow.show()
                 self.close()
 
+        # выводим ошибку заполнения формы если она есть
         elif verify_data(login, password):
             message = verify_data(login, password)
             QMessageBox.information(self, 'warning', message)
 
     def sign_up_window(self):
+        """
+        Функция срабатывает при нажатии кнопки Sign Up, открывает окно регистрации
+        """
         self.registrationWindow = RegistrationWindow()
         self.registrationWindow.show()
         self.close()
@@ -93,22 +110,28 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
         self.pushButton_4.clicked.connect(self.sign_in_window)
 
     def sign_up(self):
+        """
+        Функция срабатывает при нажатии кнопки Sign Up, заносит пользователя в БД или сообщает об ошибке
+        """
         login = self.lineEdit.text()
         password = self.lineEdit_2.text()
         password_again = self.lineEdit_5.text()
 
+        # Проверяем введенные данные на их наличие и на совпадение повтора пароля и с помощью ф-ции verify_data,
+        # которая возвращает строки с информацией об ошибке или о корректности данных
         if (not login) or (not password) or (not password_again):
             QMessageBox.information(self, 'warning', 'fill in all fields')
-            return
+
         elif password != password_again:
             QMessageBox.information(self, 'warning', 'the password repeated incorrectly')
-            return
 
+        # Если все верно, посылаем пост запрос с логином и паролем на сервис регистрации
         elif verify_data(login, password) == 'correct form':
             response = requests.post('http://' + config.reg_address + ":" + str(config.reg_port) + '/add_user/',
-                                     data={'login': login,
-                                           'password': password})
+                                     data={'login': login, 'password': password})
 
+            # В зависимости от результата запроса выводим успешна ли регистраци или нет, если да - предлагаем
+            # перейти в окно авторизации
             if response.status_code == 200:
                 QMessageBox.information(self, 'Success', 'Now you can Sign In to start chatting')
                 self.sign_in_window()
@@ -117,11 +140,15 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
             else:
                 QMessageBox.information(self, 'warning', f"Error {response.status_code}. Try again")
 
+        # выводим ошибку заполнения формы если она есть
         elif verify_data(login, password):
             message = verify_data(login, password)
             QMessageBox.information(self, 'warning', message)
 
     def sign_in_window(self):
+        """
+        Функция срабатывает при нажатии кнопки Sign In, открывает окно авторизации
+        """
         self.authorizationWindow = AuthorizeWindow()
         self.authorizationWindow.show()
         self.close()
@@ -170,7 +197,19 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
 
         # привязываем к сигналу потока функию, которая будет на него реагировать внутри gui qt
         self.ReceiveMessage.about_check_messages.connect(self.on_check_messages)
-        # self.ReceiveMessage.start()
+        self.ReceiveMessage.start()
+
+    def retranslateUi(self, MainWindow):
+        _translate = QtCore.QCoreApplication.translate
+        MainWindow.setWindowTitle(_translate("MainWindow", f"{LOGIN}"))
+        self.SenMessageButton.setText(_translate("MainWindow", "Send Message"))
+        self.label_3.setText(_translate("MainWindow", "For"))
+        self.label.setText(_translate("MainWindow", "Show History:"))
+        self.label_2.setText(_translate("MainWindow", "Since"))
+        self.pushButton.setText(_translate("MainWindow", "Show"))
+        self.AcceptReceiverButton.setText(_translate("MainWindow", "Open the dialogue"))
+        self.label_4.setText(_translate("MainWindow", "Chose the interlocatur:"))
+
 
     def on_check_messages(self, package):
         """

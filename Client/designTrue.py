@@ -140,12 +140,4 @@ class Ui_MainWindow(object):
         pass
 
     def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.SenMessageButton.setText(_translate("MainWindow", "Send Message"))
-        self.label_3.setText(_translate("MainWindow", "For"))
-        self.label.setText(_translate("MainWindow", "Show History:"))
-        self.label_2.setText(_translate("MainWindow", "Since"))
-        self.pushButton.setText(_translate("MainWindow", "Show"))
-        self.AcceptReceiverButton.setText(_translate("MainWindow", "Open the dialogue"))
-        self.label_4.setText(_translate("MainWindow", "Chose the interlocatur:"))
+        pass
