@@ -10,7 +10,8 @@ import datetime
 from Client import designTrue
 from Client import Sign_In
 from Client import Sign_Up
-import config
+from Client import config_client
+
 
 TOKEN = '0'
 LOGIN = '0'
@@ -62,8 +63,8 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
         или выводит предупреждение о провале авторизации
         """
         global TOKEN, LOGIN
-        login = self.lineEdit.text()
-        password = self.lineEdit_2.text()
+        login = self.lineEdit.text().strip()
+        password = self.lineEdit_2.text().strip()
 
         # Проверяем введенные данные на их наличие и с помощью ф-ции verify_data,
         # которая возвращает строки с информацией об ошибке или о корректности данных
@@ -72,7 +73,7 @@ class AuthorizeWindow(QtWidgets.QMainWindow, Sign_In.Ui_MainWindow):
         elif verify_data(login, password) == 'correct form':
 
             # Если все верно, посылаем пост запрос с логином и паролем на сервис авторизации
-            response = requests.post('http://' + config.auth_address + ":" + str(config.auth_port) + '/get_token/',
+            response = requests.post('http://' + config_client.auth_address + ":" + str(config_client.auth_port) + '/get_token/',
                                      data={'login': login, 'password': password})
             if response.status_code == 403:
                 QMessageBox.information(self, 'warning', f'Authorisation failed')
@@ -113,9 +114,9 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
         """
         Функция срабатывает при нажатии кнопки Sign Up, заносит пользователя в БД или сообщает об ошибке
         """
-        login = self.lineEdit.text()
-        password = self.lineEdit_2.text()
-        password_again = self.lineEdit_5.text()
+        login = self.lineEdit.text().strip()
+        password = self.lineEdit_2.text().strip()
+        password_again = self.lineEdit_5.text().strip()
 
         # Проверяем введенные данные на их наличие и на совпадение повтора пароля и с помощью ф-ции verify_data,
         # которая возвращает строки с информацией об ошибке или о корректности данных
@@ -127,7 +128,7 @@ class RegistrationWindow(QtWidgets.QMainWindow, Sign_Up.Ui_MainWindow):
 
         # Если все верно, посылаем пост запрос с логином и паролем на сервис регистрации
         elif verify_data(login, password) == 'correct form':
-            response = requests.post('http://' + config.reg_address + ":" + str(config.reg_port) + '/add_user/',
+            response = requests.post('http://' + config_client.reg_address + ":" + str(config_client.reg_port) + '/add_user/',
                                      data={'login': login, 'password': password})
 
             # В зависимости от результата запроса выводим успешна ли регистраци или нет, если да - предлагаем
@@ -171,7 +172,7 @@ class ReceiveMessageThread(QThread):
         """
         global TOKEN
         while True:
-            response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/get_messages/',
+            response = requests.post('http://' + config_client.chat_address + ":" + str(config_client.chat_port) + '/get_messages/',
                                      data={'token': TOKEN})
 
             try:
@@ -265,7 +266,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
             recipient_login = current_interlocutor_login
             date_time = datetime.datetime.now()
             try:
-                response = requests.post('http://' + config.chat_address + ":" + str(config.chat_port) + '/send_message/',
+                response = requests.post('http://' + config_client.chat_address + ":" + str(config_client.chat_port) + '/send_message/',
                                          data={'receiver': recipient_login, 'message': message,
                                                'token': TOKEN, 'date': date_time})
 
@@ -309,7 +310,7 @@ class ChatWindow(QtWidgets.QMainWindow, designTrue.Ui_MainWindow):
 
             if date1 < date2:
                 try:
-                    response = requests.post(config.history_address + ":" + str(config.history_port) + '/history/',
+                    response = requests.post('http://' + config_client.history_address + ":" + str(config_client.history_port) + '/history/',
                                              data={'interlocutor_login': current_interlocutor_login,
                                                    'token': TOKEN, 'date1': date1, 'date2': date2})
                     if response.status_code == 200:
